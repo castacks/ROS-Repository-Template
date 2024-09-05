@@ -1,0 +1,8 @@
+[submodule "src/file_utils"]
+	path = src/file_utils
+	url = https://github.com/Tom-Notch/file_utils.git
+	branch = master
+[submodule "src/cv_bridge_customize"]
+	path = src/cv_bridge_customize
+	url = https://github.com/Tom-Notch/cv_bridge_customize.git
+	branch = noetic
