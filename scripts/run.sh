@@ -48,7 +48,7 @@ docker run \
 	-v "$XSOCK":"$XSOCK" \
 	-v "$XAUTH":"$XAUTH" \
 	-v "$HOME"/.Xauthority:"$CONTAINER_HOME_FOLDER"/.Xauthority:rw \
-	-v "$(dirname "$0")"/..:"$CONTAINER_HOME_FOLDER"/"$CODE_FOLDER" \
+	-v "$(cd "$(dirname "$0")"/.. && pwd)":"$CONTAINER_HOME_FOLDER"/"$CODE_FOLDER" \
 	-w "$CONTAINER_HOME_FOLDER"/"$CODE_FOLDER" \
 	--rm \
 	-itd "$DOCKER_USER"/"$IMAGE_NAME":"$IMAGE_TAG"

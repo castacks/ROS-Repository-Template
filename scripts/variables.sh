@@ -25,6 +25,3 @@ export CODE_FOLDER
 export HOST_UID
 export HOST_GID
 export HOSTNAME
-
-export ROS_MASTER_URI
-export ROS_IP
