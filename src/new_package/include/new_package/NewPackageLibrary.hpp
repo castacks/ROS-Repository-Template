@@ -7,24 +7,27 @@
 // Copyright Ⓒ 2024 Mukai (Tom Notch) Yu
 // =============================================================================
 
+#pragma once
+
+#include <new_package/visibility_control.h>
+
 #include <iostream>
 #include <filesystem>
 #include <string>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include <geometry_msgs/PointStamped.h>
+#include <sensor_msgs/image_encodings.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "file_utils/Files.hpp"
-#include "new_package/new_msg.h"
 
 using namespace std;
 using namespace cv;
-using namespace ros;
+using namespace rclcpp;
 
 namespace new_project
 {

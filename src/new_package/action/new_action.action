@@ -1,8 +1,0 @@
-# Goal
-uint32 set_state
----
-# Result
-uint32 result_state
----
-# Feedback
-uint32 current_state

@@ -40,7 +40,6 @@ The template ROS package has both C++ and Python entrypoints. You can modify the
 
    1. package.xml
    1. CMakeLists.txt
-   1. setup.py
    1. Python sources under scripts and src (both under the package directory)
    1. C++ sources under include and src (both under the package directory)
    1. launch files
@@ -49,18 +48,16 @@ The template ROS package has both C++ and Python entrypoints. You can modify the
 1. Find all occurrences of **new_package** or **NewPackage** in the naming of folders and source files and replace them with your package name, must follow *underscore_naming_convention* for python files and *UpperCamelCase* for non-entrypoint C++ files, these include:
 
    1. package directory
-   1. Python library directory under src
+   1. Python library directory
    1. C++ library directory under include
 
 1. Update name of **launch files**
 
-1. Update name of ROS **msg/action/srv files** and update them in the corresponding CMakeLists.txt, C++, and Python source files
+1. (Optional) In ROS 2 Humble, definitions of **msg, action, and srv** file have to be put in a **dedicated standalone package**, otherwise it'll cause conflict with the python portion of new_package, check out [this GitHub issue](https://github.com/ros2/rosidl_python/issues/141) for more info
 
 1. Update the package **dependencies** in **package.xml** and **CMakeLists.txt**
 
 1. Find all occurrences of **new_project** namespace in C++ source files and replace them with your project name
-
-1. Update **ROS_MASTER_URI** and **ROS_IP** in [.env](.env)
 
 ## Developer Quick Start
 

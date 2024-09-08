@@ -10,32 +10,46 @@
 from curses import panel
 from enum import IntEnum
 
-import rospy
+import rclpy
 import tf2_geometry_msgs
 import tf2_ros
-from file_utils.files import print_dict
+from file_utils.files import dict_to_string
 from file_utils.files import read_file
 from geometry_msgs.msg import PointStamped
-from new_package.msg import new_msg
-from new_package.new_package_library import NewActionClient
+from rclpy.node import Node
+
+
+def main_loop():
+    node.get_logger().info("Node is running")
 
 
 if __name__ == "__main__":
-    rospy.init_node("new_package_node", anonymous=True)  # Initialize the node
+    rclpy.init()  # Initialize ROS 2
+
+    # Create a node
+    node = Node("new_package_node")
 
     try:
-        config_path = rospy.get_param("~config_path")
-        rospy.loginfo("Config file path: %s" % config_path)
+        node.declare_parameter("config_path", "")
+        config_path = (
+            node.get_parameter("config_path").get_parameter_value().string_value
+        )
+        node.get_logger().info("Config file path: %s" % config_path)
         # Here you can add your logic to open and read the config file
     except KeyError:
-        rospy.logerr("Parameter 'config_path' not set")
+        rclpy.logerr("Parameter 'config_path' not set")
 
     config = read_file(config_path)  # Get the file path from the first argument
 
-    rospy.loginfo("Config file content:")
-    print_dict(config)  # Print the file content
+    node.get_logger().info("Config file content:")
+    node.get_logger().info(dict_to_string(config))  # Print the file content
 
-    # Main control loop
-    while not rospy.is_shutdown():
-        rospy.loginfo("Node is running")
-        rospy.sleep(1)
+    # Create a timer to simulate the loop, with 1 second interval
+    timer = node.create_timer(1.0, main_loop)
+
+    # Spin the node to keep it alive
+    rclpy.spin(node)
+
+    # Clean up after shutdown
+    node.destroy_node()
+    rclpy.shutdown()

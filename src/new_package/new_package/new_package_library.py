@@ -7,15 +7,14 @@
 #
 # Copyright Ⓒ 2024 Mukai (Tom Notch) Yu
 #
-import actionlib
-import rospy
-from new_package.msg import new_actionAction
-from new_package.msg import new_actionGoal
+import rclpy
+from new_package.action import NewAction
+from new_package.msg import NewActionGoal
+from rclpy.action import ActionClient
+from rclpy.node import Node
 
 
-class NewActionClient:
+class NewActionClient(Node):
     def __init__(self):
-        self.client = actionlib.SimpleActionClient(
-            "new_action_driver", new_actionAction
-        )
+        self.client = ActionClient(self, NewAction, "new_action_driver")
         # self.client.wait_for_server() # should wait in the real scenario

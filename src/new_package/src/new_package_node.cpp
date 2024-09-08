@@ -11,12 +11,13 @@
 #include <filesystem>
 #include <string>
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "file_utils/Files.hpp"
 #include "new_package/NewPackageLibrary.hpp"
 
 using namespace std;
+using namespace rclcpp;
 using namespace new_project;
 
 int main(const int iArgC, const char* ppcArgV[])
@@ -26,17 +27,18 @@ int main(const int iArgC, const char* ppcArgV[])
 
     int iRosArgC = iArgC;
     char** ppcRosArgV = (char**)ppcArgV;
-    ros::init(iRosArgC, ppcRosArgV, "new_package");
-    ros::NodeHandle nhPrivate("~");  // Private NodeHandle to access private parameters
+    init(iRosArgC, ppcRosArgV);
+    auto node = make_shared<rclcpp::Node>("new_package_node");
 
     string S_CONFIG_PATH = "";
-    nhPrivate.param<std::string>("config_path", S_CONFIG_PATH, "");
+    node->declare_parameter<string>("config_path", "");
+    node->get_parameter("config_path", S_CONFIG_PATH);
     CHECK(S_CONFIG_PATH != "") << "Config file path is not provided!";
-    ROS_INFO_STREAM("Config file path: " << S_CONFIG_PATH);
+    RCLCPP_INFO_STREAM(get_logger("new_package"), "Config file path: " << S_CONFIG_PATH);
 
     const File& fConfig(S_CONFIG_PATH);
 
     NewPackageNode newPackageNode(fConfig);
 
-    ros::spin();
+    spin(node);
 }
