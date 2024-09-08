@@ -5,4 +5,5 @@
 . "$(dirname "$0")"/run.sh
 
 docker exec -it "${CONTAINER_NAME}" /bin/zsh -c "source ~/.zshrc && \
-                                                 roslaunch new_package new_package_node.launch"
+                                                 source ${CONTAINER_HOME_FOLDER}/${CODE_FOLDER}/devel/setup.zsh && \
+                                                 roslaunch new_package c++_node.launch"

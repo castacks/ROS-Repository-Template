@@ -52,7 +52,7 @@ The template ROS package has both C++ and Python entrypoints. You can modify the
    1. Python library directory under src
    1. C++ library directory under include
 
-1. Update name of **launch files**
+1. Update name of **launch files** and their content, modify [launch.sh](scripts/launch.sh) accordingly since this will be the entry point of the ROS node from outside the container
 
 1. Update name of ROS **msg/action/srv files** and update them in the corresponding CMakeLists.txt, C++, and Python source files
 
