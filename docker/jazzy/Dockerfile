@@ -1,6 +1,6 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
-# Not using osrf/ros:humble-desktop-full because it's mono-arch and we want multi-arch
-FROM ubuntu:22.04 AS base
+# Not using osrf/ros:jazzy-desktop-full because it's mono-arch and we want multi-arch
+FROM ubuntu:24.04 AS base
 ENV HOME_FOLDER=/root
 WORKDIR $HOME_FOLDER/
 
@@ -27,8 +27,7 @@ RUN apt-get install -y --no-install-recommends tzdata && \
     dpkg-reconfigure --frontend noninteractive tzdata
 
 # install python3 and pip3 && upgrade pip
-RUN apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools python3-wheel && \
-    pip3 install --upgrade pip
+RUN apt-get install -y --no-install-recommends python3-full python3-dev python3-pip python3-setuptools python3-wheel
 
 # set default python version to 3
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 2 && \
@@ -99,16 +98,16 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/do
 # change default shell for the $USER in the image building process for extra environment safety
 RUN chsh -s $(which zsh)
 
-# Install ROS humble, catkin tools, rosmon + presource workspace
-RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
+# Install ROS 2 Jazzy, presource workspace
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros2-latest-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
     apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
-    apt-get install -y ros-humble-desktop-full ros-dev-tools && \
-    echo "source /opt/ros/humble/setup.zsh" >> $HOME_FOLDER/.zshrc && \
-    echo "source /opt/ros/humble/setup.bash" >> $HOME_FOLDER/.bashrc
+    apt-get install -y ros-jazzy-desktop-full ros-dev-tools && \
+    echo "source /opt/ros/jazzy/setup.zsh" >> $HOME_FOLDER/.zshrc && \
+    echo "source /opt/ros/jazzy/setup.bash" >> $HOME_FOLDER/.bashrc
 
 # Install pre-commit for convenience
-RUN pip3 install pre-commit
+RUN pip3 install pre-commit --break-system
 
 # Add git safe directory
 RUN git config --global --add safe.directory "*"
