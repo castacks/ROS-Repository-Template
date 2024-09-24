@@ -1,5 +1,6 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
-FROM osrf/ros:noetic-desktop-full AS base
+# Not using osrf/ros:noetic-desktop-full as base image because it is not multiplatform
+FROM ubuntu:20.04 AS base
 ENV HOME_FOLDER=/root
 WORKDIR $HOME_FOLDER/
 
@@ -93,18 +94,21 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/do
     -a "bindkey -M emacs '^[[3;5~' kill-word" \
     -a "bindkey '^H' backward-kill-word" \
     -a "autoload -U compinit && compinit" \
-    -a "export PATH=~/.local/bin:$PATH" \
-    -a "source /opt/ros/noetic/setup.zsh" \
-    -a "source /opt/ros/noetic/etc/catkin/profile.d/50-rosmon.zsh"
+    -a "export PATH=~/.local/bin:$PATH"
 
 # change default shell for the $USER in the image building process for extra environment safety
 RUN chsh -s $(which zsh)
 
-# Presource ROS env in bashrc, install catkin tools and rosmon
-RUN echo "source /opt/ros/noetic/setup.bash" >> $HOME_FOLDER/.bashrc && \
+# Install ROS, catkin tools, rosmon + presource workspace
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && \
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
+    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
+    apt-get install -y ros-noetic-desktop-full && \
+    echo "source /opt/ros/noetic/setup.zsh" >> $HOME_FOLDER/.zshrc && \
+    echo "source /opt/ros/noetic/etc/catkin/profile.d/50-rosmon.zsh" >> $HOME_FOLDER/.zshrc && \
+    echo "source /opt/ros/noetic/setup.bash" >> $HOME_FOLDER/.bashrc && \
     echo "source /opt/ros/noetic/etc/catkin/profile.d/50-rosmon.bash" >> $HOME_FOLDER/.bashrc && \
     apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool python3-catkin-tools ros-noetic-rosmon && \
-    rm /etc/ros/rosdep/sources.list.d/20-default.list && \
     rosdep init && \
     rosdep update
 
@@ -137,7 +141,7 @@ FROM base
 COPY --from=yaml-cpp-build /usr/local/include/yaml-cpp /usr/local/include/yaml-cpp
 COPY --from=yaml-cpp-build /usr/local/lib/libyaml-cpp.so* /usr/local/lib/
 
-# end of sudo apt-get installs
+# end of apt-get installs
 RUN apt-get full-upgrade -y && \
     apt-get autoremove -y && \
     apt-get autoclean -y && \
