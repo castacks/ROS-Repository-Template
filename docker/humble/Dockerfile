@@ -1,5 +1,6 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
-FROM osrf/ros:humble-desktop-full AS base
+# Not using osrf/ros:humble-desktop-full because it's mono-arch and we want multi-arch
+FROM ubuntu:22.04 AS base
 ENV HOME_FOLDER=/root
 WORKDIR $HOME_FOLDER/
 
@@ -93,26 +94,18 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/do
     -a "bindkey -M emacs '^[[3;5~' kill-word" \
     -a "bindkey '^H' backward-kill-word" \
     -a "autoload -U compinit && compinit" \
-    -a "export PATH=~/.local/bin:$PATH" \
-    -a "source /opt/ros/humble/setup.zsh"
+    -a "export PATH=~/.local/bin:$PATH"
 
 # change default shell for the $USER in the image building process for extra environment safety
 RUN chsh -s $(which zsh)
 
-# # Install ROS, catkin tools, rosmon + presource workspace
-# RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
-#     apt-get install -y ros-noetic-desktop-full && \
-#     echo "source /opt/ros/noetic/setup.zsh" >> $HOME_FOLDER/.zshrc && \
-#     echo "source /opt/ros/noetic/etc/catkin/profile.d/50-rosmon.zsh" >> $HOME_FOLDER/.zshrc && \
-#     echo "source /opt/ros/noetic/setup.bash" >> $HOME_FOLDER/.bashrc && \
-#     echo "source /opt/ros/noetic/etc/catkin/profile.d/50-rosmon.bash" >> $HOME_FOLDER/.bashrc && \
-#     apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool python3-catkin-tools ros-noetic-rosmon && \
-#     rm /etc/ros/rosdep/sources.list.d/20-default.list && \
-#     rosdep init && \
-#     rosdep update
-
-# Source ROS in bash
-RUN echo "source /opt/ros/noetic/setup.bash" >> $HOME_FOLDER/.bashrc
+# Install ROS humble, catkin tools, rosmon + presource workspace
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
+    apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
+    apt-get install -y ros-humble-desktop-full ros-dev-tools && \
+    echo "source /opt/ros/humble/setup.zsh" >> $HOME_FOLDER/.zshrc && \
+    echo "source /opt/ros/humble/setup.bash" >> $HOME_FOLDER/.bashrc
 
 # Install pre-commit for convenience
 RUN pip3 install pre-commit

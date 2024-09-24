@@ -42,8 +42,6 @@ docker run \
 	-e DISPLAY="$DISPLAY" \
 	-e XAUTHORITY="$XAUTH" \
 	-e QT_X11_NO_MITSHM=1 \
-	-e ROS_MASTER_URI="$ROS_MASTER_URI" \
-	-e ROS_IP="$ROS_IP" \
 	-v /var/lib/systemd/coredump/:/cores \
 	-v "$XSOCK":"$XSOCK" \
 	-v "$XAUTH":"$XAUTH" \
