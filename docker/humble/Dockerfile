@@ -1,8 +1,8 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
 # Not using osrf/ros:humble-desktop-full because it's mono-arch and we want multi-arch
-FROM ubuntu:22.04 AS base
-ENV HOME_FOLDER=/root
-WORKDIR $HOME_FOLDER/
+FROM ${BASE_IMAGE} AS base
+ENV HOME=${HOME_FOLDER}
+WORKDIR ${HOME_FOLDER}/
 
 # Fix apt-get install stuck problem
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,7 +23,8 @@ RUN apt-get install -y --no-install-recommends lsb-release apt-utils software-pr
 
 # fix local time problem
 RUN apt-get install -y --no-install-recommends tzdata && \
-    ln -fs /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime && \
+    ln -fs /usr/share/zoneinfo/${TIME_ZONE} /etc/localtime && \
+    echo "${TIME_ZONE}" > /etc/timezone && \
     dpkg-reconfigure --frontend noninteractive tzdata
 
 # install python3 and pip3 && upgrade pip
@@ -142,6 +143,12 @@ RUN apt-get full-upgrade -y && \
     apt-get autoclean -y && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
+
+# change owner of home folder
+RUN chown -R ${IMAGE_USER}:${IMAGE_USER} ${HOME_FOLDER}
+
+# change user
+USER ${IMAGE_USER}
 
 # Set the default shell to zsh
 SHELL [ "/bin/zsh", "-c" ]
