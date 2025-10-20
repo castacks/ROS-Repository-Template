@@ -1,8 +1,11 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
 # Not using osrf/ros:noetic-desktop-full as base image because it is not multiplatform
-FROM ubuntu:20.04 AS base
-ENV HOME_FOLDER=/root
-WORKDIR $HOME_FOLDER/
+FROM ${BASE_IMAGE} as base
+ENV HOME=${HOME_FOLDER}
+WORKDIR ${HOME_FOLDER}/
+
+# Make home folder if not exists
+RUN mkdir -p ${HOME_FOLDER}
 
 # Fix apt-get install stuck problem
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,7 +26,8 @@ RUN apt-get install -y --no-install-recommends lsb-release apt-utils software-pr
 
 # fix local time problem
 RUN apt-get install -y --no-install-recommends tzdata && \
-    ln -fs /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime && \
+    ln -fs /usr/share/zoneinfo/${TIME_ZONE} /etc/localtime && \
+    echo "${TIME_ZONE}" > /etc/timezone && \
     dpkg-reconfigure --frontend noninteractive tzdata
 
 # install python3 and pip3 && upgrade pip
@@ -69,9 +73,9 @@ RUN wget https://apt.kitware.com/kitware-archive.sh -O- | sh -s && \
     apt-get autoremove -y
 
 # # Add a new group and user
-# RUN addgroup --gid 1000 $USER && \
-#     adduser --uid 1000 --ingroup $USER --home $HOME_FOLDER --shell /bin/zsh --disabled-password --gecos "" $USER && \
-#     echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# RUN addgroup --gid 1000 ${IMAGE_USER} && \
+#     adduser --uid 1000 --ingroup ${IMAGE_USER} --home $HOME_FOLDER --shell /bin/zsh --disabled-password --gecos "" ${IMAGE_USER} && \
+#     echo "${IMAGE_USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # # Fix UID/GID when mounting from host using this: https://github.com/boxboat/fixuid
 # RUN curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.6.0/fixuid-0.6.0-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
@@ -80,7 +84,7 @@ RUN wget https://apt.kitware.com/kitware-archive.sh -O- | sh -s && \
 #     mkdir -p /etc/fixuid
 
 # # Switch to the new user
-# USER $USER:$USER
+# USER ${IMAGE_USER}:${IMAGE_USER}
 
 # install zsh, Oh-My-Zsh, and plugins
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/download/zsh-in-docker.sh)" -- \
@@ -96,7 +100,7 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/do
     -a "autoload -U compinit && compinit" \
     -a "export PATH=~/.local/bin:$PATH"
 
-# change default shell for the $USER in the image building process for extra environment safety
+# change default shell for the ${IMAGE_USER} in the image building process for extra environment safety
 RUN chsh -s $(which zsh)
 
 # Install ROS, catkin tools, rosmon + presource workspace
@@ -147,6 +151,12 @@ RUN apt-get full-upgrade -y && \
     apt-get autoclean -y && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
+
+# change owner of home folder
+RUN chown -R ${IMAGE_USER}:${IMAGE_USER} ${HOME_FOLDER}
+
+# change user
+USER ${IMAGE_USER}
 
 # Set the default shell to zsh
 SHELL [ "/bin/zsh", "-c" ]
