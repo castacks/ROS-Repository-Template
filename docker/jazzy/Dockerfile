@@ -1,6 +1,12 @@
 # Do not add --platform=linux/blabla since this is intended for multiplatform builds
 # Not using osrf/ros:jazzy-desktop-full because it's mono-arch and we want multi-arch
+ARG BASE_IMAGE=ubuntu
 FROM ${BASE_IMAGE} AS base
+
+ARG IMAGE_USER
+ARG HOME_FOLDER
+ARG TIME_ZONE
+
 ENV HOME=${HOME_FOLDER}
 WORKDIR ${HOME_FOLDER}/
 
@@ -12,7 +18,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
 # Copy home folder config
-COPY --from=home-folder-config . $HOME_FOLDER/
+COPY --from=home-folder-config . ${HOME_FOLDER}/
 
 # update all obsolete packages to latest, install sudo, and cleanup
 RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
@@ -73,7 +79,7 @@ RUN wget https://apt.kitware.com/kitware-archive.sh -O- | sh -s && \
 
 # # Add a new group and user
 # RUN addgroup --gid 1000 ${IMAGE_USER} && \
-#     adduser --uid 1000 --ingroup ${IMAGE_USER} --home $HOME_FOLDER --shell /bin/zsh --disabled-password --gecos "" ${IMAGE_USER} && \
+#     adduser --uid 1000 --ingroup ${IMAGE_USER} --home ${HOME_FOLDER} --shell /bin/zsh --disabled-password --gecos "" ${IMAGE_USER} && \
 #     echo "${IMAGE_USER} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # # Fix UID/GID when mounting from host using this: https://github.com/boxboat/fixuid
@@ -92,7 +98,7 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/latest/do
     -p https://github.com/zsh-users/zsh-autosuggestions \
     -p https://github.com/zsh-users/zsh-completions \
     -p https://github.com/zsh-users/zsh-syntax-highlighting \
-    -a "[[ ! -f $HOME_FOLDER/.p10k.zsh ]] || source $HOME_FOLDER/.p10k.zsh" \
+    -a "[[ ! -f ${HOME_FOLDER}/.p10k.zsh ]] || source ${HOME_FOLDER}/.p10k.zsh" \
     -a "POWERLEVEL9K_DISABLE_GITSTATUS=true" \
     -a "bindkey -M emacs '^[[3;5~' kill-word" \
     -a "bindkey '^H' backward-kill-word" \
@@ -104,11 +110,11 @@ RUN chsh -s $(which zsh)
 
 # Install ROS 2 Jazzy, presource workspace
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros2-latest-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo ${UBUNTU_CODENAME}) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null && \
     apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true && \
     apt-get install -y ros-jazzy-desktop-full ros-dev-tools && \
-    echo "source /opt/ros/jazzy/setup.zsh" >> $HOME_FOLDER/.zshrc && \
-    echo "source /opt/ros/jazzy/setup.bash" >> $HOME_FOLDER/.bashrc
+    echo "source /opt/ros/jazzy/setup.zsh" >> ${HOME_FOLDER}/.zshrc && \
+    echo "source /opt/ros/jazzy/setup.bash" >> ${HOME_FOLDER}/.bashrc
 
 # Install pre-commit for convenience
 RUN pip3 install pre-commit --break-system
@@ -156,7 +162,7 @@ USER ${IMAGE_USER}
 SHELL [ "/bin/zsh", "-c" ]
 
 # # move fixuid config
-# RUN mv $HOME_FOLDER/fixuid-config.yml /etc/fixuid/config.yml
+# RUN mv ${HOME_FOLDER}/fixuid-config.yml /etc/fixuid/config.yml
 
 # Entrypoint command
 # ENTRYPOINT [ "/bin/sh" , "-c", "fixuid; /bin/zsh" ]
